@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { User, Calendar, MessageSquare, Heart } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 const PostCard = ({ post }) => {
   return (
@@ -27,7 +28,7 @@ const PostCard = ({ post }) => {
         </h3>
         
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} 
-           dangerouslySetInnerHTML={{ __html: post.content.replace(/<[^>]+>/g, '') }}>
+           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content.replace(/<[^>]+>/g, '')) }}>
         </p>
 
         <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>

@@ -21,7 +21,8 @@ const EditPost = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       navigate('/login');
       return;
     }
@@ -31,7 +32,7 @@ const EditPost = () => {
         const res = await fetch(`http://localhost:5000/api/posts/${id}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.authorId !== user.id) {
+          if (data.authorId !== user?.id) {
             navigate('/');
             return;
           }
@@ -100,7 +101,7 @@ const EditPost = () => {
     }
   };
 
-  if (loading) return <div className="page-header"><h2>Loading...</h2></div>;
+  if (authLoading || loading) return <div className="page-header"><h2>Loading...</h2></div>;
 
   return (
     <div className="glass" style={{ maxWidth: '800px', margin: '2rem auto', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>

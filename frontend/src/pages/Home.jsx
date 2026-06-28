@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PostCard from '../components/PostCard';
 import { Search, User, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 const CATEGORIES = ['All', 'Technology', 'Lifestyle', 'Education', 'Travel', 'Food'];
 
@@ -121,7 +122,7 @@ const Home = () => {
                   <Link to={`/post/${featuredPost.id}`}>{featuredPost.title}</Link>
                 </h2>
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '1rem', marginBottom: '2rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} 
-                   dangerouslySetInnerHTML={{ __html: featuredPost.content.replace(/<[^>]+>/g, '') }}>
+                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(featuredPost.content.replace(/<[^>]+>/g, '')) }}>
                 </p>
                 <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '2rem' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={14} /> {featuredPost.author.username}</span>

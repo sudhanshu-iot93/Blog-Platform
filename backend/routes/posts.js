@@ -1,10 +1,11 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const fs = require('fs');
+const path = require('path');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const prisma = require('../config/db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all posts (public, with optional search and category filters)
 router.get('/', async (req, res) => {
@@ -41,9 +42,14 @@ router.get('/', async (req, res) => {
 
 // Get single post (public)
 router.get('/:id', async (req, res) => {
+  const postId = parseInt(req.params.id);
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: 'Invalid post ID' });
+  }
+
   try {
     const post = await prisma.post.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: postId },
       include: {
         author: { select: { id: true, username: true } },
         comments: {
@@ -69,6 +75,11 @@ router.get('/:id', async (req, res) => {
 // Create a post (protected)
 router.post('/', auth, upload.single('image'), async (req, res) => {
   const { title, content, category } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Title and content are required' });
+  }
+
   const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   try {
@@ -97,6 +108,14 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
   const { title, content, category } = req.body;
   const postId = parseInt(req.params.id);
 
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: 'Invalid post ID' });
+  }
+
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Title and content are required' });
+  }
+
   try {
     const post = await prisma.post.findUnique({ where: { id: postId } });
 
@@ -111,6 +130,12 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
     const data = { title, content, category };
     if (req.file) {
       data.imageUrl = `/uploads/${req.file.filename}`;
+      if (post.imageUrl) {
+        const oldPath = path.join(__dirname, '..', post.imageUrl);
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (e) { console.error('Failed to delete old image:', e); }
+        }
+      }
     }
 
     const updatedPost = await prisma.post.update({
@@ -132,6 +157,10 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   const postId = parseInt(req.params.id);
 
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: 'Invalid post ID' });
+  }
+
   try {
     const post = await prisma.post.findUnique({ where: { id: postId } });
 
@@ -145,6 +174,13 @@ router.delete('/:id', auth, async (req, res) => {
 
     await prisma.post.delete({ where: { id: postId } });
 
+    if (post.imageUrl) {
+      const imgPath = path.join(__dirname, '..', post.imageUrl);
+      if (fs.existsSync(imgPath)) {
+        try { fs.unlinkSync(imgPath); } catch (e) { console.error('Failed to delete image:', e); }
+      }
+    }
+
     res.json({ message: 'Post removed' });
   } catch (err) {
     console.error(err);
@@ -155,6 +191,9 @@ router.delete('/:id', auth, async (req, res) => {
 // Toggle Like (protected)
 router.post('/:id/like', auth, async (req, res) => {
   const postId = parseInt(req.params.id);
+  if (isNaN(postId)) {
+    return res.status(400).json({ error: 'Invalid post ID' });
+  }
   const userId = req.user.userId;
 
   try {

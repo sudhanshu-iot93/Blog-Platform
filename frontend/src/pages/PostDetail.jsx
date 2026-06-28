@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { User, Calendar, Trash2, Send, Heart, Edit } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import 'react-quill/dist/quill.snow.css'; // For basic styling if needed
 
 const PostDetail = () => {
@@ -193,7 +194,7 @@ const PostDetail = () => {
         )}
       </div>
 
-      <div className="post-content ql-editor" dangerouslySetInnerHTML={{ __html: post.content }}>
+      <div className="post-content ql-editor" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}>
       </div>
 
       <hr style={{ margin: '4rem 0 2rem', borderColor: 'rgba(255,255,255,0.1)' }} />

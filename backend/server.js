@@ -30,6 +30,9 @@ app.use('/api/comments', commentRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  if (err.name === 'MulterError' || err.message === 'Only images are allowed!') {
+    return res.status(400).json({ error: err.message || 'File upload error' });
+  }
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
